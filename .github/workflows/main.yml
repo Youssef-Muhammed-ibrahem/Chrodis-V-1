@@ -1,22 +1,17 @@
 name: All Builds (Linux, macOS, Windows, Android, IPA, APK, AAB)
 
 on:
-  # Runs on push to any of the below branches
   push:
     branches:
       - master
       - main
-  # Runs on pull request events that target one of the below branches
   pull_request:
     branches:
       - master
       - main
-
-  # Allows you to run this workflow manually from the Actions tab of the repository
   workflow_dispatch:
 
 env:
-  # https://flet.dev/docs/publish#versioning
   BUILD_NUMBER: 1
   BUILD_VERSION: 1.0.0
   PYTHON_VERSION: 3.12.2
@@ -40,26 +35,34 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+        pip install flet
 
     - name: Create .env file
-      run: echo "OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}" > .env
+      run: echo "OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY || 'your-api-key-here' }}" > .env
 
     - name: Setup Flutter ${{ env.FLUTTER_VERSION }}
       uses: subosito/flutter-action@v2
       with:
         flutter-version: ${{ env.FLUTTER_VERSION }}
+        channel: 'stable'
 
-    - name: Patch for linux build
+    - name: Install Linux dependencies
       run: |
-        flutter doctor
         sudo apt-get update -y
-        sudo apt-get install -y ninja-build libgtk-3-dev
-        flutter doctor
+        sudo apt-get install -y ninja-build libgtk-3-dev clang cmake
+
+    - name: Accept Android licenses
+      run: |
+        yes | sdkmanager --licenses || true
+        flutter doctor --android-licenses --accept
+
+    - name: Run Flutter doctor
+      run: flutter doctor -v
 
     - name: Flet Build Linux
       run: |
-        flutter config --no-analytics 
-        flet build linux --verbose --build-number=$BUILD_NUMBER --build-version=$BUILD_VERSION
+        flutter config --enable-linux-desktop
+        flet build linux --build-number=$BUILD_NUMBER --build-version=$BUILD_VERSION
 
     - name: Upload Linux Artifact
       uses: actions/upload-artifact@v4.3.4
@@ -85,19 +88,24 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+        pip install flet
 
     - name: Create .env file
-      run: echo "OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}" > .env
+      run: echo "OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY || 'your-api-key-here' }}" > .env
 
     - name: Setup Flutter ${{ env.FLUTTER_VERSION }}
       uses: subosito/flutter-action@v2
       with:
         flutter-version: ${{ env.FLUTTER_VERSION }}
+        channel: 'stable'
+
+    - name: Run Flutter doctor
+      run: flutter doctor -v
 
     - name: Flet Build macOS
       run: |
-        flutter config --no-analytics
-        flet build macos --verbose --build-number=$BUILD_NUMBER --build-version=$BUILD_VERSION
+        flutter config --enable-macos-desktop
+        flet build macos --build-number=$BUILD_NUMBER --build-version=$BUILD_VERSION
 
     - name: Upload macOS Artifact
       uses: actions/upload-artifact@v4.3.4
@@ -123,63 +131,30 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+        pip install flet
 
     - name: Create .env file
-      run: echo "OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}" > .env
+      run: echo "OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY || 'your-api-key-here' }}" > .env
 
     - name: Setup Flutter ${{ env.FLUTTER_VERSION }}
       uses: subosito/flutter-action@v2
       with:
         flutter-version: ${{ env.FLUTTER_VERSION }}
+        channel: 'stable'
+
+    - name: Run Flutter doctor
+      run: flutter doctor -v
 
     - name: Flet Build Windows
       run: |
-        flutter config --no-analytics
-        flet build windows --verbose --no-rich-output --build-number=$env:BUILD_NUMBER --build-version=$env:BUILD_VERSION
+        flutter config --enable-windows-desktop
+        flet build windows --build-number=$env:BUILD_NUMBER --build-version=$env:BUILD_VERSION
 
     - name: Upload Windows Artifact
       uses: actions/upload-artifact@v4.3.4
       with:
         name: windows-build-artifact
         path: build/windows
-        if-no-files-found: warn
-        overwrite: false
-
-  build-aab:
-    runs-on: macos-latest
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Setup Python ${{ env.PYTHON_VERSION }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
-
-    - name: Install Python Dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-
-    - name: Create .env file
-      run: echo "OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}" > .env
-
-    - name: Setup Flutter ${{ env.FLUTTER_VERSION }}
-      uses: subosito/flutter-action@v2
-      with:
-        flutter-version: ${{ env.FLUTTER_VERSION }}
-
-    - name: Flet Build AAB
-      run: |
-        flutter config --no-analytics
-        flet build aab --verbose --build-number=$BUILD_NUMBER --build-version=$BUILD_VERSION
-
-    - name: Upload AAB Artifact
-      uses: actions/upload-artifact@v4.3.4
-      with:
-        name: aab-build-artifact
-        path: build/aab
         if-no-files-found: warn
         overwrite: false
 
@@ -199,25 +174,34 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+        pip install flet
 
     - name: Create .env file
-      run: echo "OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}" > .env
+      run: echo "OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY || 'your-api-key-here' }}" > .env
 
     - name: Setup Flutter ${{ env.FLUTTER_VERSION }}
       uses: subosito/flutter-action@v2
       with:
         flutter-version: ${{ env.FLUTTER_VERSION }}
+        channel: 'stable'
 
     - name: Setup Java JDK
       uses: actions/setup-java@v4.2.1
       with:
         distribution: 'temurin'
-        java-version: '21'
+        java-version: '11'
+
+    - name: Accept Android licenses
+      run: |
+        yes | sdkmanager --licenses || true
+        flutter doctor --android-licenses --accept
+
+    - name: Run Flutter doctor
+      run: flutter doctor -v
 
     - name: Flet Build APK
       run: |
-        flutter config --no-analytics
-        flet build apk --verbose --build-number=$BUILD_NUMBER --build-version=$BUILD_VERSION
+        flet build apk --build-number=$BUILD_NUMBER --build-version=$BUILD_VERSION
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4.3.4
@@ -227,8 +211,8 @@ jobs:
         if-no-files-found: warn
         overwrite: false
 
-  build-ipa:
-    runs-on: macos-latest
+  build-aab:
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
@@ -243,24 +227,39 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+        pip install flet
 
     - name: Create .env file
-      run: echo "OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}" > .env
+      run: echo "OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY || 'your-api-key-here' }}" > .env
 
     - name: Setup Flutter ${{ env.FLUTTER_VERSION }}
       uses: subosito/flutter-action@v2
       with:
         flutter-version: ${{ env.FLUTTER_VERSION }}
+        channel: 'stable'
 
-    - name: Flet Build IPA
+    - name: Setup Java JDK
+      uses: actions/setup-java@v4.2.1
+      with:
+        distribution: 'temurin'
+        java-version: '11'
+
+    - name: Accept Android licenses
       run: |
-        flutter config --no-analytics
-        flet build ipa --verbose --build-number=$BUILD_NUMBER --build-version=$BUILD_VERSION 
+        yes | sdkmanager --licenses || true
+        flutter doctor --android-licenses --accept
 
-    - name: Upload IPA Artifact
+    - name: Run Flutter doctor
+      run: flutter doctor -v
+
+    - name: Flet Build AAB
+      run: |
+        flet build aab --build-number=$BUILD_NUMBER --build-version=$BUILD_VERSION
+
+    - name: Upload AAB Artifact
       uses: actions/upload-artifact@v4.3.4
       with:
-        name: ipa-build-artifact
-        path: build/ipa
+        name: aab-build-artifact
+        path: build/aab
         if-no-files-found: warn
         overwrite: false
