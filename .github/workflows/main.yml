@@ -55,7 +55,7 @@ jobs:
 
     - name: Flet Build Linux
       run: |
-        flutter config --enable-linux-desktop
+        flutter config --no-analytics
         flet build linux --build-number=$BUILD_NUMBER --build-version=$BUILD_VERSION
 
     - name: Upload Linux Artifact
@@ -96,7 +96,7 @@ jobs:
 
     - name: Flet Build Windows
       run: |
-        flutter config --enable-windows-desktop
+        flutter config --no-analytics
         flet build windows --build-number=$env:BUILD_NUMBER --build-version=$env:BUILD_VERSION
 
     - name: Upload Windows Artifact
@@ -138,20 +138,12 @@ jobs:
         distribution: 'temurin'
         java-version: '11'
 
-    - name: Clean Flutter and upgrade packages
-      run: |
-        flutter clean
-        flutter pub upgrade
-
-    - name: Downgrade webview_flutter_android to compatible version
-      run: |
-        flutter pub add webview_flutter_android:4.8.2
-
     - name: Run Flutter doctor
       run: flutter doctor -v
 
     - name: Flet Build APK
       run: |
+        flutter config --no-analytics
         flet build apk --build-number=$BUILD_NUMBER --build-version=$BUILD_VERSION
 
     - name: Upload APK Artifact
@@ -193,20 +185,12 @@ jobs:
         distribution: 'temurin'
         java-version: '11'
 
-    - name: Clean Flutter and upgrade packages
-      run: |
-        flutter clean
-        flutter pub upgrade
-
-    - name: Downgrade webview_flutter_android to compatible version
-      run: |
-        flutter pub add webview_flutter_android:4.8.2
-
     - name: Run Flutter doctor
       run: flutter doctor -v
 
     - name: Flet Build AAB
       run: |
+        flutter config --no-analytics
         flet build aab --build-number=$BUILD_NUMBER --build-version=$BUILD_VERSION
 
     - name: Upload AAB Artifact
