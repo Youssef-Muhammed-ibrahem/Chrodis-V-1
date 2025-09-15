@@ -74,7 +74,7 @@ His commitment to continuous learning and international recognition
 )
 
 # استخدام متغير البيئة لمفتاح API
-OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
+OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY","")
 
 HEADERS = {
     "Authorization": f"Bearer {OPENROUTER_API_KEY}",
